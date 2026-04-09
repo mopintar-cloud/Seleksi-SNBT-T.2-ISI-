@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi SNBT T2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: #f0f2f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: white; width: 100%; max-width: 600px; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+
+        /* Header SNPMB */
+        .snpmb-header { background: #004a99; color: white; padding: 15px 20px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+
+        /* Forms & Inputs */
+        .content { padding: 30px; flex: 1; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background: #004a99; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #003366; }
+
+        /* Queues & Loaders */
+        .center-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 40px; }
+        .timer-big { font-size: 4rem; font-weight: bold; color: #004a99; margin: 20px 0; }
+        
+        /* Exam Screen */
+        .exam-header { display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 15px; border-bottom: 2px solid #ddd; }
+        .exam-timer { color: #d32f2f; font-weight: bold; font-size: 1.2rem; }
+        .question-box { margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .question-text { font-weight: 600; margin-bottom: 10px; }
+        .options label { display: block; padding: 8px; margin-bottom: 5px; background: #f9f9f9; border-radius: 4px; cursor: pointer; border: 1px solid #eee; }
+        .options label:hover { background: #eef; }
+        .options input { margin-right: 10px; }
+
+        /* Result Card (Mirip Asli) */
+        .result-card { width: 100%; height: 100vh; display: flex; flex-direction: column; }
+        .res-header { padding: 30px 20px; color: white; font-weight: bold; }
+        .res-header-lolos { background: linear-gradient(to right, #003366, #0066cc); }
+        .res-header-gagal { background: #c62828; }
+        .res-title { font-size: 1.3rem; margin-bottom: 5px; }
+        .res-subtitle { font-size: 0.85rem; font-weight: 400; opacity: 0.9; }
+
+        .res-body { background: linear-gradient(to bottom, #222, #111); flex: 1; padding: 25px 20px; color: white; }
+        .qr-placeholder { width: 100px; height: 100px; background: white; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; color: black; font-size: 0.7rem; text-align: center; font-weight: bold; }
+        .res-noregis { color: #81d4fa; font-size: 0.9rem; margin-bottom: 10px; font-weight: 600; }
+        .res-name { font-size: 1.8rem; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .res-univ { font-size: 1rem; color: #ddd; margin-bottom: 25px; text-transform: uppercase; }
+        
+        .res-data-group { margin-bottom: 15px; }
+        .res-label { color: #81d4fa; font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+        .res-value { font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="screen-login" class="content">
+        <div class="snpmb-header">PORTAL SIMULASI SNBT T2</div>
+        <p style="text-align: center; margin-bottom: 20px; margin-top: 20px; font-size: 0.9rem; color: #666;">Isi data diri dengan lengkap untuk memulai simulasi ujian.</p>
+        
+        <div class="form-group"><label>Nama Lengkap</label><input type="text" id="i_nama" required></div>
+        <div class="form-group"><label>NISN (10 Digit)</label><input type="number" id="i_nisn" required></div>
+        <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="i_tgllahir" required></div>
+        <div class="form-group"><label>Asal Sekolah</label><input type="text" id="i_sekolah" placeholder="Contoh: SMPN 1 Bangkalan" required></div>
+        <div class="form-group"><label>Kabupaten/Kota</label><input type="text" id="i_kota" required></div>
+        <div class="form-group"><label>Provinsi</label><input type="text" id="i_prov" required></div>
+        
+                <div class="form-group">
+            <label>Universitas Tujuan</label>
+            <select id="i_univ">
+                <option value="INSTITUT SENI INDONESIA">Institut Seni Indonesia (ISI)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Program Studi (Fakultas)</label>
+            <select id="i_fakultas">
+                <option value="Fakultas Seni Pertunjukan|90">Fakultas Seni Pertunjukan (KKM: 90)</option>
+                <option value="Fakultas Seni Rupa|87">Fakultas Seni Rupa (KKM: 87)</option>
+            </select>
+        </div>
+
+
+
+
+        <button onclick="mulaiAntrean()">DAFTAR & MULAI UJIAN</button>
+    </div>
+
+    <div id="screen-queue" class="hidden content center-screen">
+        <h2>Mempersiapkan Sesi Ujian</h2>
+        <p>Mohon tunggu, jangan tutup halaman ini...</p>
+        <div class="timer-big" id="queue-timer">10</div>
+    </div>
+
+    <div id="screen-exam" class="hidden">
+        <div class="exam-header">
+            <div style="font-weight: bold;">Babak <span id="exam-round">1</span>/5</div>
+            <div class="exam-timer" id="exam-timer">04:00</div>
+        </div>
+        <div class="content" id="exam-content" style="overflow-y: auto; max-height: calc(100vh - 140px);">
+            </div>
+        <div style="padding: 15px; border-top: 1px solid #ddd; background: white;">
+            <button onclick="selesaiBabak()" id="btn-next-babak">Selesai Babak 1</button>
+        </div>
+    </div>
+
+    <div id="screen-calc" class="hidden content center-screen">
+        <h2>Sistem Sedang Menghitung Nilai</h2>
+        <p>Mencocokkan rata-rata nilai dengan KKM Fakultas pilihan Anda...</p>
+        <div class="timer-big" id="calc-timer">60</div>
+        <button id="btn-lihat-hasil" class="hidden" onclick="tampilkanHasil()">LIHAT HASIL PENGUMUMAN</button>
+    </div>
+
+    <div id="screen-result" class="hidden result-card">
+        <div id="res-header-box" class="res-header res-header-lolos">
+            <div class="res-title" id="res-status-title">SELAMAT! ANDA DINYATAKAN LULUS SELEKSI SNBT T2</div>
+            <div class="res-subtitle" id="res-status-subtitle"></div>
+        </div>
+        <div class="res-body">
+            <div class="qr-placeholder">QR<br>CODE<br>SNBT</div>
+            <div class="res-noregis">NISN <span id="res-nisn"></span> - NOREG <span id="res-noreg"></span></div>
+            <div class="res-name" id="res-nama">NAMA DUMMY</div>
+            <div class="res-univ"><span id="res-fakultas"></span> (S1)<br><span id="res-univ-text"></span></div>
+            
+            <div class="res-data-group">
+                <div class="res-label">Tanggal Lahir</div>
+                <div class="res-value" id="res-tgl"></div>
+            </div>
+            <div class="res-data-group">
+                <div class="res-label">Asal Sekolah</div>
+                <div class="res-value" id="res-sekolah"></div>
+            </div>
+            <div class="res-data-group">
+                <div class="res-label">Kabupaten/Kota</div>
+                <div class="res-value" id="res-kota"></div>
+            </div>
+            <div class="res-data-group">
+                <div class="res-label">Provinsi</div>
+                <div class="res-value" id="res-prov"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- DATABASE SOAL (30 Soal per Babak) ---
+        const bankSoal = [
+        // Babak 1: Seni Rupa (Menggambar Model & Ilustrasi)
+        [
+            { q: "Objek gambar yang berupa manusia, hewan, tumbuhan, atau benda mati disebut gambar...", opt: ["Ilustrasi", "Model", "Perspektif", "Proyeksi"], ans: 1 },
+            { q: "Prinsip menggambar model yang memperhatikan keseimbangan antar bagian disebut...", opt: ["Komposisi", "Proporsi", "Keseimbangan", "Kesatuan"], ans: 2 },
+            { q: "Unsur seni rupa yang paling dominan dalam teknik arsir adalah...", opt: ["Warna", "Garis", "Tekstur", "Bidang"], ans: 1 },
+            { q: "Gambar yang berfungsi untuk menghias atau memperjelas suatu cerita disebut...", opt: ["Lukisan", "Karikatur", "Ilustrasi", "Vignette"], ans: 2 },
+            { q: "Teknik menggambar ilustrasi dengan menutup objek gambar menggunakan satu warna disebut...", opt: ["Arsir", "Dusel", "Siluet", "Pointilis"], ans: 2 },
+            { q: "Proporsi manusia yang ideal secara umum menggunakan satuan ukuran...", opt: ["Jengkal", "Tinggi Kepala", "Lebar Bahu", "Panjang Lengan"], ans: 1 },
+            { q: "Pensil yang memiliki tingkat kehitaman pekat (lunak) biasanya berkode...", opt: ["H", "HB", "B", "2B/6B"], ans: 3 },
+            { q: "Media pewarna yang bersifat transparan dan menggunakan pengencer air adalah...", opt: ["Cat Poster", "Cat Air", "Krayon", "Pensil Warna"], ans: 1 },
+            { q: "Gambar ilustrasi yang bentuknya dilebih-lebihkan atau dideformasi disebut...", opt: ["Kartun", "Karikatur", "Komik", "Karya Sastra"], ans: 1 },
+            { q: "Langkah pertama dalam menggambar model adalah...", opt: ["Pewarnaan", "Membuat Sketsa", "Menentukan Objek", "Memberi Gelap Terang"], ans: 2 }
+        ],
+        // Babak 2: Seni Musik (Lagu Daerah & Tradisional)
+        [
+            { q: "Lagu daerah yang berasal dari Jawa Tengah dan bertema nasihat adalah...", opt: ["Gundul Pacul", "Apuse", "Ampar-ampar Pisang", "Manuk Dadali"], ans: 0 },
+            { q: "Teknik bernyanyi dalam kelompok musik yang membawakan satu melodi secara bersama disebut...", opt: ["Unisono", "Kanon", "Vokal Grup", "Paduan Suara"], ans: 0 },
+            { q: "Alat musik Angklung berasal dari daerah...", opt: ["Jawa Timur", "Jawa Barat", "Bali", "Madura"], ans: 1 },
+            { q: "Musik iringan tari tradisional biasanya menggunakan alat musik jenis...", opt: ["Modern", "Pentatonis", "Diatonis", "Elektronik"], ans: 1 },
+            { q: "Suling dan Terompet termasuk alat musik yang dimainkan dengan cara ditiup, disebut...", opt: ["Membranofon", "Aerofon", "Kordofon", "Idiofon"], ans: 1 },
+            { q: "Gamelan Jawa umumnya menggunakan tangga nada...", opt: ["Diatonis", "Pelog dan Slendro", "Mayor", "Minor"], ans: 1 },
+            { q: "Lagu 'Lir-Ilir' diciptakan oleh...", opt: ["Sunan Kalijaga", "Sunan Bonang", "Sunan Giri", "Sunan Muria"], ans: 0 },
+            { q: "Bernyanyi secara berkelompok tanpa iringan alat musik disebut...", opt: ["Akustik", "Ansambel", "Akapela", "Unisono"], ans: 2 },
+            { q: "Alat musik Sasando berasal dari daerah...", opt: ["NTT", "NTB", "Papua", "Maluku"], ans: 0 },
+            { q: "Lagu 'Cublak-cublak Suweng' termasuk jenis lagu...", opt: ["Pop", "Dolanan", "Wajib", "Keroncong"], ans: 1 }
+        ],
+        // Babak 3: Seni Tari (Tari Tradisional & Iringan)
+        [
+            { q: "Keunikan gerak tari tradisional Indonesia terletak pada...", opt: ["Kecepatan", "Kelenturan mata dan tangan", "Kekuatan kaki", "Semua benar"], ans: 1 },
+            { q: "Tari Saman menggunakan musik internal yang berasal dari...", opt: ["Gamelan", "Tepukan tangan dan dada", "Suling", "Rebana"], ans: 1 },
+            { q: "Pola lantai yang membentuk garis lurus dari depan ke belakang disebut...", opt: ["Horizontal", "Diagonal", "Vertikal", "Melingkar"], ans: 2 },
+            { q: "Tari Kecak dari Bali menggunakan pola lantai...", opt: ["Lurus", "Lengkung/Lingkaran", "Zig-zag", "Segitiga"], ans: 1 },
+            { q: "Properti utama yang digunakan dalam Tari Piring adalah...", opt: ["Selendang", "Keris", "Piring", "Payung"], ans: 2 },
+            { q: "Busana tari tradisional harus disesuaikan dengan...", opt: ["Harga kostum", "Tren masa kini", "Karakter tarian", "Keinginan penari"], ans: 2 },
+            { q: "Tari Jaipong berasal dari...", opt: ["Jawa Tengah", "Jawa Barat", "Banten", "DKI Jakarta"], ans: 1 },
+            { q: "Gerakan tari yang memiliki arti atau maksud tertentu disebut gerak...", opt: ["Murni", "Maknawi", "Imitasi", "Abstrak"], ans: 1 },
+            { q: "Musik iringan tari yang berasal dari luar tubuh penari disebut musik...", opt: ["Internal", "Eksternal", "Alami", "Buatan"], ans: 1 },
+            { q: "Tari Remo merupakan tari penyambutan tamu yang berasal dari...", opt: ["Bali", "Jawa Timur", "Sumatera", "Sulawesi"], ans: 1 }
+        ],
+        // Babak 4: Seni Teater (Pantomim & Tradisional)
+        [
+            { q: "Seni pertunjukan tanpa kata-kata yang mengandalkan gerak tubuh dan mimik disebut...", opt: ["Drama", "Pantomim", "Operet", "Puisi"], ans: 1 },
+            { q: "Warna riasan putih pada wajah pemain pantomim berfungsi untuk...", opt: ["Menutupi jerawat", "Memperjelas ekspresi wajah", "Biar terlihat lucu", "Tradisi"], ans: 1 },
+            { q: "Latihan pernapasan dalam teater bertujuan untuk...", opt: ["Menjaga stamina", "Memperkuat vokal", "Ketenangan", "Semua benar"], ans: 3 },
+            { q: "Tokoh utama yang memiliki sifat jahat dalam sebuah cerita disebut...", opt: ["Protagonis", "Antagonis", "Tritagonis", "Figuran"], ans: 1 },
+            { q: "Pertunjukan teater tradisional dari Jawa Timur yang kental dengan humor adalah...", opt: ["Lenong", "Ludruk", "Ketoprak", "Wayang"], ans: 1 },
+            { q: "Latihan kelenturan tubuh agar tidak kaku saat di panggung disebut...", opt: ["Olah Rasa", "Olah Tubuh", "Olah Vokal", "Meditasi"], ans: 1 },
+            { q: "Naskah dalam teater berfungsi sebagai...", opt: ["Hiasan panggung", "Panduan cerita dan dialog", "Absensi pemain", "Syarat lomba"], ans: 1 },
+            { q: "Kejelasan pengucapan kata dalam berakting disebut...", opt: ["Intonasi", "Artikulasi", "Power", "Tempo"], ans: 1 },
+            { q: "Properti panggung dalam pantomim biasanya bersifat...", opt: ["Mewah", "Imajiner (Khayalan)", "Sangat berat", "Berwarna warni"], ans: 1 },
+            { q: "Teater tradisional dari Jakarta (Betawi) adalah...", opt: ["Mamanda", "Lenong", "Arja", "Randai"], ans: 1 }
+        ],
+        // Babak 5: Pengetahuan Umum Seni & Budaya
+        [
+            { q: "Batik yang pengerjaannya menggunakan canting disebut batik...", opt: ["Cap", "Tulis", "Printing", "Lukis"], ans: 1 },
+            { q: "Alat untuk membatik yang berfungsi menampung lilin panas adalah...", opt: ["Gawangan", "Canting", "Wajan", "Dingklik"], ans: 1 },
+            { q: "UNESCO mengakui Batik sebagai warisan budaya dunia dari Indonesia pada tanggal...", opt: ["17 Agustus", "2 Mei", "2 Oktober", "10 November"], ans: 2 },
+            { q: "Motif batik 'Parang' memiliki ciri khas garis...", opt: ["Lurus", "Miring/Diagonal", "Melingkar", "Kotak"], ans: 1 },
+            { q: "Warna alami batik 'Soga' yang berasal dari batang pohon menghasilkan warna...", opt: ["Biru", "Merah", "Cokelat", "Kuning"], ans: 2 },
+            { q: "Pameran seni rupa yang dilakukan oleh satu orang disebut pameran...", opt: ["Kelompok", "Tunggal", "Nasional", "Internasional"], ans: 1 },
+            { q: "Apresiasi seni yang melibatkan penilaian secara mendalam disebut apresiasi...", opt: ["Empatik", "Estetis", "Kritis", "Simpatik"], ans: 2 },
+            { q: "Karya seni rupa yang memiliki panjang, lebar, dan tinggi (volume) disebut karya...", opt: ["2 Dimensi", "3 Dimensi", "4 Dimensi", "Terapan"], ans: 1 },
+            { q: "Contoh karya seni rupa terapan adalah...", opt: ["Lukisan", "Kursi Ukir", "Patung", "Grafis"], ans: 1 },
+            { q: "Langkah terakhir dalam kegiatan pameran adalah...", opt: ["Persiapan", "Pelaksanaan", "Evaluasi/Laporan", "Publikasi"], ans: 2 }
+        ]
+    ];
+
+    // --- VARIABEL STATE ---
+    let userData = {};
+    let currentRound = 0;
+    let scores = [];
+    let examInterval;
+    let soalAktifUjian = []; // Array untuk menyimpan 5 soal yang terpilih per babak
+    
+    // --- CEK LOCAL STORAGE KETIKA HALAMAN DIBUKA ---
+    window.onload = () => {
+        const savedData = localStorage.getItem('snbt_sim_data');
+        if(savedData) {
+            userData = JSON.parse(savedData);
+            tampilkanHasilAkhir();
+        }
+    };
+
+    // --- FUNGSI ALUR ---
+    function mulaiAntrean() {
+        const nama = document.getElementById('i_nama').value;
+        const nisn = document.getElementById('i_nisn').value;
+        const tgl = document.getElementById('i_tgllahir').value;
+        const sekolah = document.getElementById('i_sekolah').value;
+        const kota = document.getElementById('i_kota').value;
+        const prov = document.getElementById('i_prov').value;
+        const univ = document.getElementById('i_univ').value;
+        
+        const fakVal = document.getElementById('i_fakultas').value.split('|');
+        const fakultas = fakVal[0];
+        const kkm = parseInt(fakVal[1]);
+
+        if(!nama || !nisn || !tgl || !sekolah || !kota || !prov) {
+            alert("Harap lengkapi semua data!"); return;
+        }
+
+        // Generate Noreg Acak 9 Digit
+        const noreg = Math.floor(100000000 + Math.random() * 900000000);
+
+        userData = { nama, nisn, tgl, sekolah, kota, prov, univ, fakultas, kkm, noreg, finalScore: 0, lulus: false };
+
+        pindahLayar('screen-login', 'screen-queue');
+        jalankanTimer('queue-timer', 10, mulaiUjian);
+    }
+
+    function mulaiUjian() {
+        currentRound = 0;
+        scores = [];
+        
+        // --- LOGIKA RANDOMIZER SOAL ---
+        // Kita acak 30 soal per babak, lalu potong (slice) cuma ambil 5 soal
+        soalAktifUjian = bankSoal.map(babak => {
+            let salinanSoal = [...babak];
+            // Fisher-Yates Shuffle untuk mengacak array
+            for (let i = salinanSoal.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [salinanSoal[i], salinanSoal[j]] = [salinanSoal[j], salinanSoal[i]];
+            }
+            return salinanSoal.slice(0, 5); // Ambil 5 soal teratas setelah diacak
+        });
+
+        pindahLayar('screen-queue', 'screen-exam');
+        renderBabak();
+    }
+
+    function renderBabak() {
+        document.getElementById('exam-round').innerText = currentRound + 1;
+        document.getElementById('btn-next-babak').innerText = currentRound === 4 ? "Kirim Semua Jawaban" : `Selesai Babak ${currentRound + 1}`;
+        
+        const content = document.getElementById('exam-content');
+        content.innerHTML = '';
+        
+        // Render menggunakan soalAktifUjian (5 soal random terpilih), BUKAN bankSoal langsung
+        soalAktifUjian[currentRound].forEach((soal, index) => {
+            let html = `<div class="question-box">
+                <div class="question-text">${index + 1}. ${soal.q}</div>
+                <div class="options">`;
+            soal.opt.forEach((opsi, i) => {
+                html += `<label><input type="radio" name="q_${index}" value="${i}"> ${opsi}</label>`;
+            });
+            html += `</div></div>`;
+            content.innerHTML += html;
+        });
+
+        // Set Timer 4 Menit (240 Detik)
+        clearInterval(examInterval);
+        jalankanTimer('exam-timer', 240, selesaiBabak, true);
+    }
+
+    function selesaiBabak() {
+        // Hitung nilai babak ini berdasarkan soalAktifUjian
+        let correct = 0;
+        soalAktifUjian[currentRound].forEach((soal, index) => {
+            const selected = document.querySelector(`input[name="q_${index}"]:checked`);
+            if(selected && parseInt(selected.value) === soal.ans) {
+                correct++;
+            }
+        });
+        
+        // Skor per babak: (Benar / 5) * 100
+        let roundScore = (correct / 5) * 100;
+        scores.push(roundScore);
+
+        currentRound++;
+        if(currentRound < 5) {
+            renderBabak();
+        } else {
+            masukPengumuman();
+        }
+    }
+
+    function masukPengumuman() {
+        clearInterval(examInterval);
+        
+        // Hitung Rata-rata dari 5 babak
+        let total = scores.reduce((a, b) => a + b, 0);
+        userData.finalScore = total / 5;
+        userData.lulus = userData.finalScore >= userData.kkm;
+
+        // Simpan ke Local Storage
+        localStorage.setItem('snbt_sim_data', JSON.stringify(userData));
+
+        pindahLayar('screen-exam', 'screen-calc');
+        jalankanTimer('calc-timer', 60, () => {
+            document.getElementById('calc-timer').classList.add('hidden');
+            document.getElementById('btn-lihat-hasil').classList.remove('hidden');
+        });
+    }
+
+    function tampilkanHasil() {
+        pindahLayar('screen-calc', 'screen-result');
+        tampilkanHasilAkhir();
+    }
+
+    function tampilkanHasilAkhir() {
+        document.getElementById('screen-login').classList.add('hidden');
+        document.getElementById('screen-queue').classList.add('hidden');
+        document.getElementById('screen-exam').classList.add('hidden');
+        document.getElementById('screen-calc').classList.add('hidden');
+        document.getElementById('screen-result').classList.remove('hidden');
+
+        // Isi Data ke Kartu
+        document.getElementById('res-nisn').innerText = userData.nisn;
+        document.getElementById('res-noreg').innerText = userData.noreg;
+        document.getElementById('res-nama').innerText = userData.nama;
+        document.getElementById('res-fakultas').innerText = userData.fakultas;
+        document.getElementById('res-univ-text').innerText = userData.univ;
+        
+        // Format Tanggal
+        const dateObj = new Date(userData.tgl);
+        document.getElementById('res-tgl').innerText = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        
+        document.getElementById('res-sekolah').innerText = userData.sekolah;
+        document.getElementById('res-kota').innerText = userData.kota;
+        document.getElementById('res-prov').innerText = userData.prov;
+
+        // Atur Warna dan Teks berdasarkan Kelulusan
+        const headerBox = document.getElementById('res-header-box');
+        const title = document.getElementById('res-status-title');
+        const subtitle = document.getElementById('res-status-subtitle');
+
+        if(userData.lulus) {
+            headerBox.className = "res-header res-header-lolos";
+            title.innerText = "SELAMAT! ANDA DINYATAKAN LULUS SELEKSI SNBT T2";
+            subtitle.innerText = "";
+        } else {
+            headerBox.className = "res-header res-header-gagal";
+            title.innerText = "ANDA DINYATAKAN TIDAK LULUS SELEKSI SNBT T2";
+            subtitle.innerText = "MASIH ADA KESEMPATAN MENDAFTAR DAN MENGIKUTI SELEKSI MANDIRI PTN.";
+        }
+    }
+
+    // --- UTILS ---
+    function pindahLayar(idLama, idBaru) {
+        document.getElementById(idLama).classList.add('hidden');
+        document.getElementById(idBaru).classList.remove('hidden');
+    }
+
+    function jalankanTimer(elementId, seconds, callback, isMinutes = false) {
+        let el = document.getElementById(elementId);
+        let s = seconds;
+        
+        examInterval = setInterval(() => {
+            s--;
+            if(isMinutes) {
+                let m = Math.floor(s / 60);
+                let remS = s % 60;
+                el.innerText = `${String(m).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
+            } else {
+                el.innerText = s;
+            }
+            
+            if(s <= 0) {
+                clearInterval(examInterval);
+                callback();
+            }
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
